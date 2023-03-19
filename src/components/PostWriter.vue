@@ -1,66 +1,59 @@
 <script lang="ts" setup>
 import { ref, onMounted, watch, watchEffect } from 'vue';
+import { useRouter } from 'vue-router'
 import { TimelinePost } from '../posts';
-import {marked} from "marked"
+import { marked } from "marked"
 import highlightjs from "highlight.js"
 import debounce from 'lodash/debounce'
-import {usePosts} from '../stores/posts'
-
+import { usePosts } from '../stores/posts'
 const props = defineProps<{
     post: TimelinePost
 }>()
-
 const title = ref(props.post.title)
-const content= ref(props.post.markdown)
+const content = ref(props.post.markdown)
 const contentEditable = ref<HTMLDivElement>()
-const html=ref('')
-
-const posts= usePosts()
-
-function parseHtml (markdown:string){
-    marked.parse(markdown,{
-        gfm:true,
-        breaks:true,
-        highlight:(code)=>{
+const html = ref('')
+const posts = usePosts()
+const router = useRouter()
+function parseHtml(markdown: string) {
+    marked.parse(markdown, {
+        gfm: true,
+        breaks: true,
+        highlight: (code) => {
             return highlightjs.highlightAuto(code).value
         }
-    },(err,parseResult)=>{
-    html.value=parseResult
-})
+    }, (err, parseResult) => {
+        html.value = parseResult
+    })
 }
-
-watch(content,debounce((newContent)=>{
-  parseHtml(newContent)
-
-},2500),{
-    immediate:true
+watch(content, debounce((newContent) => {
+    parseHtml(newContent)
+}, 2500), {
+    immediate: true
 })
-
-onMounted(()=>{
-    if(!contentEditable.value){
-        throw Error('ContentEditable DOM node was not found')
-    } 
-    contentEditable.value.innerText=content.value
-})
-
-function handleInput(){
-    if(!contentEditable.value){
+onMounted(() => {
+    if (!contentEditable.value) {
         throw Error('ContentEditable DOM node was not found')
     }
-    content.value=contentEditable.value?.innerText
+    contentEditable.value.innerText = content.value
+})
+function handleInput() {
+    if (!contentEditable.value) {
+        throw Error('ContentEditable DOM node was not found')
+    }
+    content.value = contentEditable.value?.innerText
 }
-
-function handleClick(){
-    const newPost : TimelinePost={
+async function handleClick() {
+    const newPost: TimelinePost = {
         ...props.post,
-        title:title.value,
-        markdown:content.value,
-        html:html.value
+        title: title.value,
+        markdown: content.value,
+        html: html.value
     }
-    posts.createPost(newPost)
+    await posts.createPost(newPost);
+    router.push("/")
 }
 </script>
-
 <template>
     <div class="columns">
         <div class="columns">
@@ -70,20 +63,19 @@ function handleClick(){
             </div>
         </div>
     </div>
-
     <div class="columns">
         <div class="column">
-            <div contenteditable ref="contentEditable" @input="handleInput"/>
+            <div contenteditable ref="contentEditable" @input="handleInput" />
         </div>
         <div class="column">
-            <div v-html="html"/>
+            <div v-html="html" />
         </div>
     </div>
     <div class="column">
-<div class="column">
-    <button class="button is-primary is-pulled-right" @click="handleClick">
-        Save Post
-    </button>
-</div>
+        <div class="column">
+            <button class="button is-primary is-pulled-right" @click="handleClick">
+                Save Post
+            </button>
+        </div>
     </div>
 </template>
