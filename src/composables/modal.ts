@@ -1,11 +1,20 @@
-import {ref} from "vue"
+import { ref, shallowRef} from "vue"
+import SignupNewForm from "../components/SignUpNewForm.vue";
+import SigninForm from "../components/SigninForm.vue";
+const show = ref(false)
+const component = shallowRef();
 
-const show= ref (false)
-
-export function useModal(){
-    return{
+export function useModal() {
+    return {
         show,
-        showModal:()=>(show.value=true),
-        hideModal:()=>(show.value=false)
+        component,
+        showModal: (type: 'signUp' | 'signIn') => {
+            show.value = true
+            switch (type) {
+                case 'signIn': return component.value = SigninForm
+            case 'signUp': return component.value = SignupNewForm
+            }
+        },
+        hideModal: () => (show.value = false)
     }
 }

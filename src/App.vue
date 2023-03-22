@@ -2,8 +2,9 @@
 import { computed} from 'vue'
 import Navbar from './components/Navbar.vue';
 import { useModal } from './composables/modal';
-
+import {useUsers} from './stores/users'
 const modal = useModal()
+const usersStore=useUsers()
 const modalStyle = computed(() => {
   return {
     display: modal.show.value ? 'block' : 'none'
